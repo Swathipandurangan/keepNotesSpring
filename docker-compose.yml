@@ -1,0 +1,158 @@
+# Dockerfile has been added in all micro-services, you need to dockerize all micro-services and add docker-compose.yml file
+version: '3'
+networks:
+  mynetwork:
+  
+services:
+ mysql:
+  image: mysql:latest
+  ports:
+    - "3306:3306"
+  container_name: mysql-note7
+  networks:
+      - mynetwork
+ 
+ mongo:
+  image: mongo:3.2-jessie
+  ports: 
+   - 27017:27017
+  container_name: mongo-note7
+  networks:
+      - mynetwork
+
+ rabbitmq:
+  image: rabbitmq:3-management-alpine
+  container_name: rabbitmq-note7
+  ports:
+    - 5672:5672
+    - 15672:15672
+  networks:
+    - mynetwork
+      
+ zipkin:
+  image: openzipkin/zipkin
+  container_name: zipkin-note7
+  restart: always
+  environment:
+    - RABBIT_URI=amqp://rabbitmq
+  ports:
+    - 9411:9411
+  depends_on:
+    - rabbitmq
+  networks:
+    - mynetwork
+  expose:
+    - 9411
+      
+ eureka:
+  container_name: eureka-server-note7
+  build: ./netflix-eureka-naming-server
+  ports:
+    - 8761:8761
+  hostname: localhost
+  networks:
+    - mynetwork
+  environment:
+    - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhost:8761/eureka
+
+ zuul:
+  container_name: zuul-api-gateway-note7
+  build: ./netflix-zuul-api-gateway-server
+  ports:
+    - 8765:8765
+  hostname: localhost
+  networks:
+    - mynetwork
+  environment:
+    - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhost:8761/eureka
+     
+ userauthentication-service:
+  image: userauthentication-service-note7
+  build: ./UserAuthentication-Service
+  environment:
+    MYSQL_DATABASE: autehnticationservicedb
+    MYSQL_USER: root
+    MYSQL_PASSWORD: root
+    MYSQL_HOST: localhost
+  restart: always
+  ports:
+   - "9100:9100"
+  expose:
+   - 9100
+  container_name: userauthentication-service
+  networks:
+      - mynetwork
+  depends_on: 
+   - mysql
+   
+ user-service:
+  image: user-service-note7
+  build: ./UserService
+  environment:
+    MONGO_DATABASE: userDb
+    MONGO_PORT: 27017
+    MONGO_HOST: localhost
+  restart: always
+  ports:
+   - "9200:9200"
+  expose:
+   - 9200
+  container_name: user-service
+  networks:
+      - mynetwork
+  depends_on: 
+   - mongo
+
+ note-service:
+  image: note-service-note7
+  build: ./NoteService
+  environment:
+    MONGO_DATABASE: noteDb
+    MONGO_PORT: 27017
+    MONGO_HOST: localhost
+  restart: always
+  ports:
+   - "9300:9300"
+  expose:
+   - 9300
+  container_name: note-service
+  networks:
+      - mynetwork
+  depends_on: 
+   - mongo
+   
+ reminder-service:
+  image: reminder-service-note7
+  build: ./ReminderService
+  environment:
+    MONGO_DATABASE: reminderDb
+    MONGO_PORT: 27017
+    MONGO_HOST: localhost
+  restart: always
+  ports:
+   - "9500:9500"
+  expose:
+   - 9500
+  container_name: reminder-service
+  networks:
+      - mynetwork
+  depends_on: 
+   - mongo
+ 
+ category-service:
+  image: category-service-note7
+  build: ./CategoryService
+  environment:
+    MONGO_DATABASE: categoryDb
+    MONGO_PORT: 27017
+    MONGO_HOST: localhost
+  restart: always
+  ports:
+   - "9400:9400"
+  expose:
+   - 9400
+  container_name: category-service
+  networks:
+      - mynetwork
+  depends_on: 
+   - mongo

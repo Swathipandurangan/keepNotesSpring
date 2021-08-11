@@ -1,0 +1,31 @@
+spring:
+  data:
+    mongodb:
+#      username: root
+#      password: root
+#      username: ${MONGO_USERNAME}
+#      password: ${MONGO_PASSWORD}
+      database: ${MONGO_DATABASE}
+      port: ${MONGO_PORT}
+      host: ${MONGO_HOST}
+#      database: categoryDb
+#      port: 27017
+#      host: localhost
+  application:
+    name: category-service
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+  zipkin:
+    baseUrl: http://localhost:9411/zipkin  
+    locator:
+      discovery:
+        enabled: true
+server:
+  port: 9400
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
